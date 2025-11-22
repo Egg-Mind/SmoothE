@@ -1,18 +1,18 @@
 <!--- SPDX-License-Identifier: Apache-2.0  -->
 <!-- <img src="smoothe-icon.png" width=128/>  -->
-<img src="smoothe-icon.png" width="128" alt="SmoothE Logo"/>
-
-# SmoothE: Differentiable E-Graph Extraction
+<img src="smoothe-icon.png" width="128"/> SmoothE: Differentiable E-Graph Extraction
+==============================================================================
 
 ## 📙 Overview
 
-SmoothE is a novel approach to e-graph extraction that handles complex cost models through a probabilistic perspective.
-By relaxing the original discrete optimization problem into a continuous differentiable form, SmoothE minimizes the expected cost via gradient descent to optimize the probability distribution.
+SmoothE is a novel approach for e-graph extraction that handles complex cost models through a probabilistic perspective.
+By relaxing the original discrete optimization problem into a continuous differentiable form,
+SmoothE minimizes the expected cost via gradient descent to optimize the probability distribution utilizing GPUs.
 
 For a deep dive into the methodology, please refer to our paper: [SmoothE: Differentiable E-Graph Extraction](https://www.csl.cornell.edu/~zhiruz/pdfs/smoothe-asplos2025.pdf)
 
 🚀 **Optimized Implementation**
-> Note: This repository contains an optimized implementation of SmoothE, distinct from the [artifact version](https://github.com/yaohuicai/smoothe-artifact).
+> Note: This repository contains an optimized implementation of SmoothE, distinct from the original [ASPLOS'25 artifact version](https://github.com/yaohuicai/smoothe-artifact).
 
 Key improvements in this version include:
 * **Enhanced GPU Efficiency**: Significant speedups and improved GPU memory usage, especially for large graphs.
@@ -100,7 +100,17 @@ The sources and statistics of the dataset are as follows:
 | [boole/nonmapped](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11132728) | 6 | 416,269 | 163,586 |
 
 Note that only a subset of the [*boole*](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11132728) benchmark is included in this repository due to the GitHub file size limit.
- You can download the complete dataset from their [Hugging Face page](https://huggingface.co/datasets/SeaSkysz/eboost_dataset/tree/main/boole).
+The complete dataset can be downloaded from their [Hugging Face page](https://huggingface.co/datasets/SeaSkysz/eboost_dataset/tree/main/boole).
+
+## 🤼 Comparing with SOTA 
+With this optimized implementation, SmoothE achieves the state-of-the-art results.
+Comparing with state-of-the-art extraction method, [*e-boost*](https://arxiv.org/abs/2508.13020) using ILP, 
+SmoothE is comparable or even better, including on their own benchmarks.
+For example, on *boole* and *e-morphic* benchmarks, SmoothE outperforms *e-boost* with CPLEX by 7.8% and 1.7% respectively in terms of geometric mean cost reduction, under the same time limit of 60 seconds per instance.
+
+Note that *e-boost* can also be seen as an orthogonal technique to SmoothE.
+By feeding the e-graphs pruned using *e-boost* into SmoothE,
+sometimes results can be further improved, especially for large e-graphs.
 
 ## 📜 Citation 
 If you use SmoothE in your research, please cite our ASPLOS '25 paper:
@@ -108,7 +118,7 @@ If you use SmoothE in your research, please cite our ASPLOS '25 paper:
 @inproceedings{cai2025smoothe,
   title={Smoothe: Differentiable e-graph extraction},
   author={Cai, Yaohui and Yang, Kaixin and Deng, Chenhui and Yu, Cunxi and Zhang, Zhiru},
-  booktitle={Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 1},
+  booktitle={International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
   pages={1020--1034},
   year={2025}
 }
