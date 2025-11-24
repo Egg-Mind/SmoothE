@@ -68,7 +68,7 @@ def launch(path, method, hp=None):
                 sp.run(command, shell=True, stdout=f, stdin=f)
 
     if method == 'smoothe':
-        os.mkdir('logs', exist_ok=True)
+        os.makedirs('logs', exist_ok=True)
         dataset = os.path.join(path, 'result').replace('/', '_')
         file_path = os.path.join('logs', f'{dataset}.json')
         json.dump(all_logs, open(file_path, 'w'))

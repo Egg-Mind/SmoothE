@@ -29,39 +29,140 @@ To achieve optimal performance, high-end GPU hardware is required.
 
 ### Environment Setup
 We recommend using Conda to manage dependencies.
+
 1. Clone the repository:
-```
-git clone https://github.com/your-username/smoothe.git
+```bash
+git clone https://github.com/Egg-Mind/SmoothE.git
 cd smoothe
 ```
-2. Create and activate the environment:
 
-```
+2. Create and activate the environment:
+```bash
 conda env create -f env.yaml
 conda activate smoothe
 ```
 
-## 🏁 Quick Start
-This library includes a launch script (`script/solve_benchmark.py`) that handles auto-tuning of hyper-parameters for you.
-**Running a Benchmark**
-This will solve all instances in the specified benchmark using SmoothE.
+3. Install additional dependencies (if needed):
+```bash
+pip install "numpy<2" scipy networkx tqdm
 ```
+
+### Important Notes
+
+⚠️ **CUDA Requirements**: This implementation requires PyTorch with CUDA support. The `env.yaml` specifies PyTorch 2.0.1 with CUDA 11.7. Ensure your system has a compatible NVIDIA GPU and drivers.
+
+⚠️ **Environment Activation**: Always activate the `smoothe` environment before running the scripts:
+```bash
+conda activate smoothe
+```
+
+⚠️ **NumPy Version**: The code requires NumPy 1.x (not 2.x) for compatibility with PyTorch extensions. If you encounter NumPy-related errors, downgrade using:
+```bash
+pip install "numpy<2"
+```
+
+### Verifying Installation
+
+To verify your installation is correct, run:
+```bash
+python -c "import torch; import torch_sparse; print(f'PyTorch: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+```
+
+You should see PyTorch version 2.0.1 (or compatible) and `CUDA available: True`.
+
+## 🏁 Quick Start
+
+### Running a Benchmark
+
+This library includes a launch script (`script/solve_benchmark.py`) that automatically optimizes all instances in a benchmark directory.
+
+**Basic Usage:**
+```bash
 python script/solve_benchmark.py ${PATH_TO_BENCHMARK}
 ```
-**Arguments:**
-* ${PATH_TO_BENCHMARK}: The relative path to your target benchmark file.
 
-**Optional Arguments:**
-* --time_limit: Set the maximum runtime per instance in seconds (Default: 120).
+**Arguments:**
+* `${PATH_TO_BENCHMARK}`: Path to the directory containing benchmark `.json` files
+* `--time_limit`: Maximum runtime per instance in seconds (Default: 120)
+* `--method`: Solver method: `smoothe`, `cbc`, `scip`, or `cplex` (Default: `smoothe`)
 
 **Example:**
-```
+```bash
 python script/solve_benchmark.py dataset/tensat --time_limit 60
 ```
 
-**Output:**
-Results are automatically saved to the `logs/` directory:
-* `logs/${PATH_TO_BENCHMARK}.json`
+### What Happens During Execution
+
+The benchmark script performs two phases:
+
+**Phase 1: Hyperparameter Search** (~2 minutes for small datasets)
+1. Selects the median-sized file from the benchmark directory as representative
+2. Tests 4 hyperparameter combinations (2 assumptions × 2 sample frequencies)
+3. Each combination runs for up to 30 seconds
+4. Identifies the best-performing configuration
+   - *Note: Currently, the script uses fixed hyperparameters (`hybrid` assumption, `sample_freq=1`) regardless of search results*
+
+**Phase 2: Full Benchmark Optimization**
+1. Processes all `.json` files in the benchmark directory sequentially
+2. For each instance:
+   - Loads the e-graph from JSON
+   - Runs SmoothE optimization using GPU-accelerated gradient descent
+   - Respects the `--time_limit` constraint per instance
+   - Records the minimum cost and convergence time
+3. Saves detailed logs for each instance
+
+**Expected Runtime:**
+- Hyperparameter search: ~2 minutes (4 combinations × 30s)
+- Per instance: Up to `--time_limit` seconds
+- Total for `dataset/tensat` (5 instances with `--time_limit 60`): ~7 minutes
+
+### Output Files
+
+Results are saved to the `logs/` directory:
+
+**Summary Results:**
+- `logs/${PATH_TO_BENCHMARK}_result.json`: Contains final results for all instances
+  ```json
+  {
+    "instance1.json": {
+      "inference_loss": [...],
+      "time": [...],
+      "loss": [...]
+    }
+  }
+  ```
+
+**Detailed Training Logs:**
+- `logs/smoothe_log/${INSTANCE}_smoothe.json`: Per-instance training details including:
+  - Loss trajectory over training steps
+  - Inference loss at each evaluation point
+  - Time stamps
+  - Final solution (selected e-nodes)
+
+### Monitoring Progress
+
+The script prints real-time progress to stdout:
+```
+Selected dataset/tensat/bert.json for hyper-parameter search
+Trying assumption: independent, sample_freq: 1
+Trying assumption: independent, sample_freq: 10
+...
+running on vgg.json
+File: vgg.json, Min Loss: 1234.56, Time: 45.2
+...
+All logs saved to logs/dataset_tensat_result.json
+```
+
+### Troubleshooting
+
+**CUDA Out of Memory:**
+- The script automatically reduces batch size and retries upon CUDA memory errors
+- If problems persist, try smaller benchmark instances first
+
+**No results (all None):**
+- Check that you activated the `smoothe` conda environment
+- Verify CUDA is available: `python -c "import torch; print(torch.cuda.is_available())"`
+- Check logs in `logs/smoothe_log/` for detailed error messages
 
 <!-- dataset/set: 996738, 104632
 dataset/maxsat: 3851, 3781

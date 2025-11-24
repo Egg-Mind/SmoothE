@@ -197,6 +197,7 @@ def run(args):
     logging.info(f'training log: {training_log}')
     file_name = os.path.splitext(os.path.basename(
         args.input_file))[0] + '_smoothe'
+    os.makedirs('logs/smoothe_log', exist_ok=True)
     json.dump(training_log, open(f'logs/smoothe_log/{file_name}.json', 'w'))
     logging.info('logs dumped to ' + f'logs/smoothe_log/{file_name}.json')
     logging.info(
